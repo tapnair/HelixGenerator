@@ -1,0 +1,12 @@
+{
+	"autodeskProduct":	"Fusion360",
+	"type":	"addin",
+	"id":	"7dfd674a-ab7b-4626-9d5b-a4d8f4381188",
+	"author":	"Patrick Rainsberry",
+	"description":	{
+		"":	"Generates a helical curve"
+	},
+	"version":	"1.0",
+	"runOnStartup":	false,
+	"supportedOS":	"windows|mac"
+}
