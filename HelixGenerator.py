@@ -10,7 +10,7 @@ handlers = []
 
 commandName = 'Helix'
 commandDescription = 'Create a Helix Curve'
-command_id = 'cmd_Helix2'
+command_id = 'cmd_Helix'
 menu_panel = 'SketchPanel'
 commandResources = './resources'
 
@@ -139,7 +139,7 @@ def run(context):
                     commandInputs_.addValueInput('pitch', 'Pitch', unitsMgr.defaultLengthUnits , pitch_input)
                     
                     #resolution_input = adsk.core.ValueInput.createByReal(10)
-                    commandInputs_.addIntegerSpinnerCommandInput('resolution', 'Resolution', 0, 1000, 5, 1)
+                    commandInputs_.addIntegerSpinnerCommandInput('resolution', 'Resolution', 0, 1000, 1, 10)
                     
                     #revolutions_input = adsk.core.ValueInput.createByReal(5)
                     commandInputs_.addIntegerSpinnerCommandInput('revolutions', 'Revolutions', 0, 1000, 1, 1)
