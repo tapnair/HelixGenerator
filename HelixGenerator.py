@@ -1,189 +1,138 @@
-#Author-Patrick Rainsberry
-#Description-Generates a helical curve
-
 import adsk.core, adsk.fusion, traceback
 import math
+from . import Fusion360CommandBase
+
+######## Define the parameters of your command #########################################
+commandName1 = 'Helix'
+commandDescription1 = 'Create a Helix Curve'
+cmdId1 = 'cmd_Helix'
+commandResources1 = './resources'
+myWorkspace1 = 'FusionSolidEnvironment'
+myToolbarPanelID1 = 'SketchPanel'
 
 
-# global event handlers referenced for the duration of the command
-handlers = []
+# Turn on for some helpful messages when debugging your app
+debug = False
 
-commandName = 'Helix'
-commandDescription = 'Create a Helix Curve'
-command_id = 'cmd_Helix'
-menu_panel = 'SketchPanel'
-commandResources = './resources'
+def getInputs(inputs):
+    for input_ in inputs:
+        if input_.id == 'radius':
+            radius = input_.value
+        elif input_.id == 'revolutions':
+            revolutions = input_.value
+        elif input_.id == 'pitch':
+            pitch = input_.value
+        elif input_.id == 'resolution':
+            resolution = input_.value
+        elif input_.id == 'PlaneSelect':
+            plane = input_.selection(0).entity
+    return (radius, revolutions, pitch, resolution, plane)
 
-def helixMaker(inputs):
-    ui = None
-    theta = 2*math.pi
-    try:
-        # We need access to the inputs within a command during the execute.
-        for input in inputs:
-            if input.id == 'radius':
-                radius = input.value
-            elif input.id == 'revolutions':
-                revolutions = input.value
-            elif input.id == 'pitch':
-                pitch = input.value
-            elif input.id == 'resolution':
-                resolution = input.value
-            elif input.id == 'PlaneSelect':
-                plane = input.selection(0).entity
-                    
-        # Get Fusion Objects                    
+# Generic Math Function to generate a point on a helix
+def HelixPoint(radius, pitch, resolution, t):
+        
+    # Helix math
+    x = radius * math.cos(2*math.pi*t/resolution)
+    y = radius * math.sin(2*math.pi*t/resolution)
+    z = pitch * t / resolution
+    
+    # Create Fusion point
+    point = adsk.core.Point3D.create(x, y, z)
+    return point
+
+# Generates a Helix in Fusion    
+def helixMaker (radius, revolutions, pitch, resolution, plane):
+    
+    # Get Fusion Objects                    
+    app = adsk.core.Application.get()
+    design = app.activeProduct
+    
+    # Get the root component of the active design.
+    rootComp = design.rootComponent
+    
+    # Get Sketches Collection for Root component
+    sketches = rootComp.sketches
+    
+    #Add sketch to selected plane
+    sketch = sketches.add(plane)
+    
+    # Collection to hold helix points
+    points = adsk.core.ObjectCollection.create()
+
+    # Iterate based on revolutions and resolution
+    for t in range(0, int(revolutions*resolution)+1):
+        
+        # Add Point to collection
+        points.add(HelixPoint(radius, pitch, resolution, t))
+    
+    # Create Spline through points
+    sketch.sketchCurves.sketchFittedSplines.add(points);
+    
+    
+############# Create your Actions Here #################################################
+class HelixCommand(Fusion360CommandBase.Fusion360CommandBase):
+    
+    # Runs when Fsuion command would generate a preview after all inputs are valid or changed
+    def onPreview(self, command, inputs):
+        
+        # Get user inputs
+        (radius, revolutions, pitch, resolution, plane) = getInputs(inputs)
+        
+        # create a helix based on inputs
+        helixMaker(radius, revolutions, pitch, resolution, plane)
+    
+    # Runs when the command is destroyed.  Sometimes useful for cleanup after the fact
+    def onDestroy(self, command, inputs, reason_):    
+        pass
+    
+    # Runs when when any input in the command dialog is changed
+    def onInputChanged(self, command, inputs, changedInput):
+        pass
+    
+    # Runs when the user presses ok button
+    def onExecute(self, command, inputs):        
+        
+        # Get user inputs
+        (radius, revolutions, pitch, resolution, plane) = getInputs(inputs)
+        
+        # create a helix based on inputs 
+        helixMaker(radius, revolutions, pitch, resolution, plane)
+        
+        #A cleaner way would be simply: helixMaker(*getInputs(inputs))
+    
+    # Runs when user selects your command from Fusion UI, Build UI here
+    def onCreate(self, command, inputs):
         app = adsk.core.Application.get()
-        ui  = app.userInterface
-        design = app.activeProduct
+        product = app.activeProduct
+        design = adsk.fusion.Design.cast(product)
+        unitsMgr = design.unitsManager
         
-        # Get the root component of the active design.
-        rootComp = design.rootComponent
+        # Create the Selection input to have a planar face or construction plane selected.  
+        selInput = inputs.addSelectionInput('PlaneSelect', 'Plane', 'Select sketch plane.')
+        selInput.addSelectionFilter('PlanarFaces')
+        selInput.addSelectionFilter('ConstructionPlanes')
+        selInput.setSelectionLimits(1,1)
         
-        # Create a new sketch on the xy plane.
-        sketches = rootComp.sketches
-        #xyPlane = rootComp.xYConstructionPlane
-        sketch = sketches.add(plane)
+        # Radius of the helix
+        radius_input = adsk.core.ValueInput.createByReal(2.54)
+        inputs.addValueInput('radius', 'Radius', unitsMgr.defaultLengthUnits , radius_input)
         
-        # Collection to hold CAM Profile points
-        points = adsk.core.ObjectCollection.create()
-               
-        for t in range(0, int(revolutions*resolution)+1):
-            x = radius * math.cos(theta*t/resolution)
-            y = radius * math.sin(theta*t/resolution)
-            z = pitch * t / resolution
-            point = adsk.core.Point3D.create(x, y, z)
-            points.add(point)
+        # Pitch of the helix
+        pitch_input = adsk.core.ValueInput.createByReal(2.54)
+        inputs.addValueInput('pitch', 'Pitch', unitsMgr.defaultLengthUnits , pitch_input)
         
-        # Create Spline through points
-        sketch.sketchCurves.sketchFittedSplines.add(points);
+        # Define points per revolution -> resolution
+        inputs.addIntegerSpinnerCommandInput('resolution', 'Resolution', 0, 1000, 1, 10)
+        
+        # Number of revolutions
+        inputs.addIntegerSpinnerCommandInput('revolutions', 'Revolutions', 0, 1000, 1, 1)
+        
 
-    except:
-        if ui:
-            ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
-            
-            
+######################## Setup and run the Command##########################################
+newCommand1 = HelixCommand(commandName1, commandDescription1, commandResources1, cmdId1, myWorkspace1, myToolbarPanelID1, debug)
+
 def run(context):
-    ui = None
-    try:
-        app = adsk.core.Application.get()
-        ui  = app.userInterface
-
-        # Handle the input changed event.        
-        class executePreviewHandler(adsk.core.CommandEventHandler):
-            def __init__(self):
-                super().__init__()
-            def notify(self, args):
-                app = adsk.core.Application.get()
-                ui  = app.userInterface
-                try:
-                    cmd = args.firingEvent.sender
-                    inputs = cmd.commandInputs
-                    helixMaker(inputs)
-                    
-                except:
-                    if ui:
-                        ui.messageBox('command executed failed:\n{}'
-                        .format(traceback.format_exc()))
-                        
-        # Handle the execute event.
-        class CommandExecuteHandler(adsk.core.CommandEventHandler):
-            def __init__(self):
-                super().__init__()
-            def notify(self, args):
-                try:  
-                    # Get values from input form
-                    cmd = args.firingEvent.sender
-                    inputs = cmd.commandInputs
-                    helixMaker(inputs)
-                                        
-                except:
-                    if ui:
-                        ui.messageBox('command executed failed:\n{}'
-                        .format(traceback.format_exc()))
-        
-        # Handle the execute event.
-        class CommandCreatedEventHandlerPanel(adsk.core.CommandCreatedEventHandler):
-            def __init__(self):
-                super().__init__() 
-            def notify(self, args):
-                try:
-                    product = app.activeProduct
-                    design = adsk.fusion.Design.cast(product)
-                    unitsMgr = design.unitsManager
-                    
-                    # Setup Handlers for update and execute                   
-                    cmd = args.command
-                    onExecute = CommandExecuteHandler()
-                    cmd.execute.add(onExecute)
-                    onUpdate = executePreviewHandler()
-                    cmd.executePreview.add(onUpdate)
-                    
-                    # keep the handler referenced beyond this function
-                    handlers.append(onExecute)
-                    handlers.append(onUpdate)
-                    
-                    # Define UI Elements
-                    commandInputs_ = cmd.commandInputs                
-                  
-                    # Add all parameters to the input form
-                    # Create the Selection input to have a planar face or construction plane selected.                
-                    selInput = commandInputs_.addSelectionInput('PlaneSelect', 'Plane', 'Select sketch plane.')
-                    selInput.addSelectionFilter('PlanarFaces')
-                    selInput.addSelectionFilter('ConstructionPlanes')
-                    selInput.setSelectionLimits(1,1)
-                    
-                    radius_input = adsk.core.ValueInput.createByReal(2.54)
-                    commandInputs_.addValueInput('radius', 'Radius', unitsMgr.defaultLengthUnits , radius_input)
-
-                    pitch_input = adsk.core.ValueInput.createByReal(2.54)
-                    commandInputs_.addValueInput('pitch', 'Pitch', unitsMgr.defaultLengthUnits , pitch_input)
-                    
-                    #resolution_input = adsk.core.ValueInput.createByReal(10)
-                    commandInputs_.addIntegerSpinnerCommandInput('resolution', 'Resolution', 0, 1000, 1, 10)
-                    
-                    #revolutions_input = adsk.core.ValueInput.createByReal(5)
-                    commandInputs_.addIntegerSpinnerCommandInput('revolutions', 'Revolutions', 0, 1000, 1, 1)
-                                  
-                except:
-                    if ui:
-                        ui.messageBox('Panel command created failed:\n{}'
-                        .format(traceback.format_exc()))
-                                       
-        # Get the UserInterface object and the CommandDefinitions collection.
-        cmdDefs = ui.commandDefinitions
-         
-        # Create a basic button command definition.
-        buttonDef = cmdDefs.addButtonDefinition(command_id, 
-                                                commandName, 
-                                                commandDescription, 
-                                                commandResources)                                               
-        # Setup Event Handler
-        onCommandCreated = CommandCreatedEventHandlerPanel()
-        buttonDef.commandCreated.add(onCommandCreated)
-        handlers.append(onCommandCreated)
-
-        # Add the controls to the Inspect toolbar panel.
-        modifyPanel = ui.allToolbarPanels.itemById(menu_panel)
-        buttonControl = modifyPanel.controls.addCommand(buttonDef)
-        buttonControl.isVisible = True
-        
-
-    except:
-        if ui:
-            ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+    newCommand1.onRun()
 
 def stop(context):
-    ui = None
-    try:
-        app = adsk.core.Application.get()
-        ui  = app.userInterface
-        commandDef = ui.commandDefinitions.itemById(command_id)
-        commandDef.deleteMe()
-
-        panel = ui.allToolbarPanels.itemById(menu_panel)
-        control = panel.controls.itemById(command_id)
-        control.deleteMe()
-        
-    except:
-        if ui:
-            ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+    newCommand1.onStop()
