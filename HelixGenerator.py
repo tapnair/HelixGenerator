@@ -10,9 +10,8 @@ commandResources1 = './resources'
 myWorkspace1 = 'FusionSolidEnvironment'
 myToolbarPanelID1 = 'SketchPanel'
 
-
 # Turn on for some helpful messages when debugging your app
-debug = False
+debug = True
 
 def getInputs(inputs):
     for input_ in inputs:
