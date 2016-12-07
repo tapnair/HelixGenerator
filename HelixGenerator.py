@@ -2,7 +2,7 @@ import adsk.core, adsk.fusion, traceback
 import math
 from . import Fusion360CommandBase
 
-######## Define the parameters of your command #########################################
+######## Helix Command Parameters #########################################
 commandName1 = 'Helix'
 commandDescription1 = 'Create a Helix Curve'
 cmdId1 = 'cmd_Helix'
