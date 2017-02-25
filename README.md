@@ -5,9 +5,12 @@ Note this curve is an approximation of a helix and not a true mathematical helix
 
 ![Helix Cover](./resources/cover_image.png)
 
-## Usage:
-First see [How to install sample Add-Ins and Scripts](https://rawgit.com/AutodeskFusion360/AutodeskFusion360.github.io/master/Installation.html)
+# Installation
+[Click here to download the Add-in](https://github.com/tapnair/HelixGenerator/archive/master.zip)
 
+After downloading the zip file follow the [installation instructions here](https://tapnair.github.io/installation.html) for your particular OS version of Fusion 360 
+
+## Usage:
 Select a plane or planar face and let it generate a helix from the origin of that plane or face
 
 ## License
