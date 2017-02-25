@@ -6,7 +6,7 @@ Note this curve is an approximation of a helix and not a true mathematical helix
 ![Helix Cover](./resources/cover_image.png)
 
 # Installation
-[Click here to download the Add-in](https://github.com/tapnair/HelixGenerator/archive/master.zip)
+[Click here to download the Add-in](https://github.com/tapnair/HelixGenerator/releases/download/1.0/HelixGenerator.zip)
 
 After downloading the zip file follow the [installation instructions here](https://tapnair.github.io/installation.html) for your particular OS version of Fusion 360 
 
