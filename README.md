@@ -3,6 +3,8 @@ Fusion 360 addin to generate helical curves
 
 Note this curve is an approximation of a helix and not a true mathematical helix.
 
+![Helix Cover](./resources/cover_image.png)
+
 ## Usage:
 First see [How to install sample Add-Ins and Scripts](https://rawgit.com/AutodeskFusion360/AutodeskFusion360.github.io/master/Installation.html)
 
