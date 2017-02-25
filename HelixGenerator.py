@@ -2,7 +2,7 @@ import adsk.core, adsk.fusion, traceback
 import math
 from . import Fusion360CommandBase
 
-######## Helix Command Parameters #########################################
+# Helix Command Parameters
 commandName1 = 'Helix'
 commandDescription1 = 'Create a Helix Curve'
 cmdId1 = 'cmd_Helix'
@@ -11,7 +11,7 @@ myWorkspace1 = 'FusionSolidEnvironment'
 myToolbarPanelID1 = 'SketchPanel'
 
 # Turn on for some helpful messages when debugging your app
-debug = True
+debug = False
 
 def getInputs(inputs):
     for input_ in inputs:
@@ -27,6 +27,7 @@ def getInputs(inputs):
             plane = input_.selection(0).entity
     return (radius, revolutions, pitch, resolution, plane)
 
+
 # Generic Math Function to generate a point on a helix
 def HelixPoint(radius, pitch, resolution, t):
         
@@ -38,6 +39,7 @@ def HelixPoint(radius, pitch, resolution, t):
     # Create Fusion point
     point = adsk.core.Point3D.create(x, y, z)
     return point
+
 
 # Generates a Helix in Fusion    
 def helixMaker (radius, revolutions, pitch, resolution, plane):
@@ -52,7 +54,7 @@ def helixMaker (radius, revolutions, pitch, resolution, plane):
     # Get Sketches Collection for Root component
     sketches = rootComp.sketches
     
-    #Add sketch to selected plane
+    # Add sketch to selected plane
     sketch = sketches.add(plane)
     
     # Collection to hold helix points
@@ -68,10 +70,10 @@ def helixMaker (radius, revolutions, pitch, resolution, plane):
     sketch.sketchCurves.sketchFittedSplines.add(points);
     
     
-############# Create your Actions Here #################################################
+# Command Code
 class HelixCommand(Fusion360CommandBase.Fusion360CommandBase):
     
-    # Runs when Fsuion command would generate a preview after all inputs are valid or changed
+    # Runs when Fusion command would generate a preview after all inputs are valid or changed
     def onPreview(self, command, inputs):
         
         # Get user inputs
@@ -127,11 +129,13 @@ class HelixCommand(Fusion360CommandBase.Fusion360CommandBase):
         inputs.addIntegerSpinnerCommandInput('revolutions', 'Revolutions', 0, 1000, 1, 1)
         
 
-######################## Setup and run the Command##########################################
+# Setup and run the Command
 newCommand1 = HelixCommand(commandName1, commandDescription1, commandResources1, cmdId1, myWorkspace1, myToolbarPanelID1, debug)
+
 
 def run(context):
     newCommand1.onRun()
+
 
 def stop(context):
     newCommand1.onStop()
