@@ -6,7 +6,7 @@ from .Fusion360Utilities.Fusion360CommandBase import Fusion360CommandBase
 from .Fusion360Utilities.Fusion360Utilities import get_app_objects
 
 # Set this to True to automatically populate the initial selection field
-USE_DEFAULT_PLANE = True
+USE_DEFAULT_PLANE = False
 
 # If the above value is true this will be the default selection (in the active component)
 # Valid values are: 'XY', 'XZ', 'YZ'
