@@ -13,6 +13,14 @@ After downloading the zip file follow the [installation instructions here](https
 ## Usage:
 Select a plane or planar face and let it generate a helix from the origin of that plane or face
 
+NOTE: The command was moved to the "Create" dropdown in the solid environment
+
+There are three options that can be set by opening and editing the HelixCommand.py file:
+
+ * __USE_DEFAULT_PLANE__: Set this to True to automatically populate the initial selection field
+ * __DEFAULT_PLANE__: If the above value is true this will be the default selection (in the active component)
+ * __SHOW_COMPONENT_ORIGIN_FOLDER__: Whether the default construction entities will be shown for the active component
+
 ## License
 Samples are licensed under the terms of the [MIT License](http://opensource.org/licenses/MIT). Please see the [LICENSE](LICENSE) file for full details.
 

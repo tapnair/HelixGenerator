@@ -5,6 +5,18 @@ import math
 from .Fusion360Utilities.Fusion360CommandBase import Fusion360CommandBase
 from .Fusion360Utilities.Fusion360Utilities import get_app_objects
 
+# Set this to True to automatically populate the initial selection field
+USE_DEFAULT_PLANE = True
+
+# If the above value is true this will be the default selection (in the active component)
+# Valid values are: 'XY', 'XZ', 'YZ'
+DEFAULT_PLANE = 'XY'
+# DEFAULT_PLANE = 'XZ'
+# DEFAULT_PLANE = 'YZ'
+
+# If set to True the default construction entities will be shown for the active component
+SHOW_COMPONENT_ORIGIN_FOLDER = True
+
 
 # You could change back to this function to create the variable helix
 # you will want to do something about adjusting for the resolution in the t multiplier
@@ -63,11 +75,28 @@ def helix_maker(radius, revolutions, pitch, resolution, plane):
     
     # Create Spline through points
     sketch.sketchCurves.sketchFittedSplines.add(points)
-    
-    
+
+
+def default_selection(selection_input: adsk.core.SelectionCommandInput, component: adsk.fusion.Component):
+    if selection_input.selectionCount == 0:
+        if DEFAULT_PLANE == 'XY':
+            selection_input.addSelection(component.xYConstructionPlane)
+        elif DEFAULT_PLANE == 'XZ':
+            selection_input.addSelection(component.xZConstructionPlane)
+        elif DEFAULT_PLANE == 'YZ':
+            selection_input.addSelection(component.yZConstructionPlane)
+        else:
+            app_objects = get_app_objects()
+            app_objects['ui'].messageBox('Your default plane selection was invalid')
+
+
 # THis is the class that contains the information about your command.
 class HelixCommand(Fusion360CommandBase):
-    
+
+    def __init__(self, cmd_def, debug):
+        super().__init__(cmd_def, debug)
+        self.origin_state: bool = False
+
     # Runs when Fusion command would generate a preview after all inputs are valid or changed
     def on_preview(self, command, inputs, args, input_values):
 
@@ -87,7 +116,13 @@ class HelixCommand(Fusion360CommandBase):
                     input_values['pitch'],
                     input_values['resolution'],
                     input_values['plane'][0])
-    
+
+    def on_destroy(self, command, inputs, reason, input_values):
+        if SHOW_COMPONENT_ORIGIN_FOLDER:
+            app_objects = get_app_objects()
+            active_component = app_objects['design'].activeComponent
+            active_component.isOriginFolderLightBulbOn = self.origin_state
+
     # Runs when user selects your command from Fusion UI, Build UI here
     def on_create(self, command, inputs):
 
@@ -96,12 +131,23 @@ class HelixCommand(Fusion360CommandBase):
 
         # Get users current units
         default_units = app_objects['units_manager'].defaultLengthUnits
+
+        # Get active design product
+        active_component = app_objects['design'].activeComponent
+
+        # Make default planes visible
+        if SHOW_COMPONENT_ORIGIN_FOLDER:
+            self.origin_state = active_component.isOriginFolderLightBulbOn
+            active_component.isOriginFolderLightBulbOn = True
         
         # Create the Selection input to have a planar face or construction plane selected.  
-        selection_input = inputs.addSelectionInput('plane', 'Plane', 'Select sketch plane.')
+        selection_input: adsk.core.SelectionCommandInput = inputs.addSelectionInput('plane', 'Plane', 'Select sketch plane.')
         selection_input.addSelectionFilter('PlanarFaces')
         selection_input.addSelectionFilter('ConstructionPlanes')
         selection_input.setSelectionLimits(1, 1)
+
+        if USE_DEFAULT_PLANE:
+            default_selection(selection_input, active_component)
         
         # Radius of the helix
         radius_input = adsk.core.ValueInput.createByReal(2.54)

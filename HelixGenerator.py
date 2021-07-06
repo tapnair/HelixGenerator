@@ -12,7 +12,7 @@ cmd = {
     'cmd_resources': './resources',
     'cmd_id': 'cmdID_HelixCommand',
     'workspace': 'FusionSolidEnvironment',
-    'toolbar_panel_id': 'SketchPanel',
+    'toolbar_panel_id': 'SolidCreatePanel',
     'class': HelixCommand
 }
 command_definitions.append(cmd)
